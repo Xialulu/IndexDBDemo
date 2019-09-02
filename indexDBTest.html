@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="http://libs.baidu.com/jquery/1.7.2/jquery.min.js"></script>
+    <script src='./indexDb.js'></script>
+</head>
+
+<body>
+    <div>
+        <p>
+            查询
+        </p>
+        <input id="bookNameSearch" type="text" value='' placeholder="书名" />
+        <button id="search">搜索</button>
+    </div>
+    <div>
+        <p>添加数据</p>
+        <div>
+            <input class="bookName" type="text" value='' placeholder="书名" />
+            <input class="author" type="text" value='' placeholder="作者" />
+            <input class="publicTime" type="date" value='' placeholder="发版时间" />
+            <button id='add'>添加</button>
+        </div>
+    </div>
+    <p>数据展示</p>
+    <div id="show">
+
+    </div>
+
+    <button id='clear'>清除数据</button>
+
+
+
+
+</body>
+<script>
+    const db = new DBbase('library', 2, {
+        name: 'books', //存储空间表的名字
+        keypath: 'id' //主键
+    });
+    console.log(db);
+    const data = [{
+        id: 1,
+        bookName: 'hahha',
+        author: '13212',
+        publicTime: '2019-04-03'
+    }, {
+        id: 2,
+        bookName: 'qqqqq',
+        author: '111111',
+        publicTime: '2018-04-03'
+    }, {
+        id: 3,
+        bookName: 'mmmmm',
+        author: '222222',
+        publicTime: '2017-04-03'
+    }, {
+        id: 4,
+        bookName: 'zzzzzz',
+        author: '333333',
+        publicTime: '2015-04-03'
+    }, {
+        id: 5,
+        bookName: '777777',
+        author: '3333',
+        publicTime: '2013-04-03'
+    }];
+
+    // 打开数据库
+    db.openDB([{
+        name: 'bookName',
+        unique: true
+    }]).then(res => {
+        // 读取数据
+        db.traverseData().then(res => {
+            const { event, type } = res;
+            if (event.length > 0) {
+                this.gtoShow(event);
+            } else {
+                // 添加数据
+                db.addDataAll(data).then(res => {
+                    const { type, event } = res;
+                    if (type == 'success') {
+                        this.gtoShow(data);
+                    }
+                })
+            }
+        })
+    });
+
+    change = (data) => {
+        console.log(data)
+    }
+    gtoShow = (data) => {
+        const show = document.getElementById('show');
+        let html = '';
+        for (let i = 0; i < data.length; i++) {
+            html += `<form>
+                        <input class='formName' name='name' type='text' value=${data[i].bookName} />
+                        <input class='formAuthor' name='author type='text' value=${data[i].author} />
+                        <input  class='formTimer' name='date'  type='date' value=${data[i].publicTime} />
+                        <button class='submit' data-index=${i} data-id=${data[i].id} type='button'>修改</button>
+                        <button class='delect' data-id=${data[i].id} type='button'>删除</button>
+                      </form>
+                      `
+        }
+        show.innerHTML = html;
+    }
+
+
+    document.getElementById('show').addEventListener('click', (e) => {
+        let target = e.target;
+        let nodeName = target.nodeName.toLowerCase();
+        if (nodeName.indexOf('button') >= 0) {
+            if (target.className == 'submit') {
+                const id = Number(target.dataset.id);
+                const index = target.dataset.index;
+                const bookName = document.getElementsByClassName('formName')[index].value;
+                const author = document.getElementsByClassName('formAuthor')[index].value;
+                const publicTime = document.getElementsByClassName('formTimer')[index].value;
+                console.log('button,', id, index, bookName, author, publicTime)
+                db.updateDate({
+                    id,
+                    bookName,
+                    author,
+                    publicTime
+                }).then(res => {
+                    db.traverseData().then(res => {
+                        const { event, type } = res;
+                        if (event.length > 0) {
+                            this.gtoShow(event);
+                        }
+                    })
+                    alert('修改成功');
+                })
+            } else if (target.className == 'delect') {
+                const id = target.dataset.id;
+                db.deleteData(id).then(res => {
+                    db.traverseData().then(traevent => {
+                        console.log('traevent', traevent);
+                        const { event, type } = traevent;
+                        if (type == 'success') {
+                            console.log('traevent', traevent);
+                            this.gtoShow(event);
+                        }
+                    })
+                })
+            }
+        }
+    });
+
+    document.getElementById('add').addEventListener('click', (e) => {
+        const bookName = document.getElementsByClassName('bookName')[0].value;
+        const author = document.getElementsByClassName('author')[0].value;
+        const publicTime = document.getElementsByClassName('publicTime')[0].value;
+        const id = (new Date()).getTime();
+        db.addData({
+            bookName,
+            author,
+            publicTime,
+            id
+        }).then(res => {
+            if (res.type = 'success') {
+                $('#show').append(
+                    `  <form>
+                                <input name='name' type='text' value=${bookName} />
+                                <input name='author type='text' value=${author} />
+                                <input name='date'  type='text' value=${publicTime} />
+                                <button class='submit' type='button'>修改</button>
+                                <button class='delect' data-id=${id} type='button'>删除</button>
+                            </form>`
+                );
+
+            } else {
+                alert('添加失败');
+            }
+        })
+        console.log(bookName, author, publicTime)
+    });
+
+
+    document.getElementById('clear').addEventListener('click', () => {
+        db.clearDate().then(res => {
+            if (res.type = 'success') {
+                console.log(res);
+                db.traverseData().then(traevent => {
+                    console.log('traevent', traevent);
+                    const { event, type } = traevent;
+                    if (type == 'success') {
+                        console.log('traevent', traevent);
+                        this.gtoShow(event);
+                    }
+                })
+                alert('删除成功')
+            }
+
+
+        })
+    })
+
+
+
+    document.getElementById('search').addEventListener('click', () => {
+        let search = $('#bookNameSearch').val();
+        console.log('data', search)
+        db.search(search).then(res => {
+            console.log(res);
+            const { type, event } = res;
+            if (type == 'success') {
+                this.gtoShow(event);
+            }
+        })
+    })
+</script>
+
+</html>

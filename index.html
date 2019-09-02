@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+
+<body>
+
+    <div>
+        webSql数据展示
+        <div class="show">
+        </div>
+
+    </div>
+    <button id="mgbtn">删除数据</button>
+    <button id="mgbtn1">更新数据</button>
+
+    <script>
+        var db = openDatabase('mydb', '1.0', 'Test DB', 2 * 1024 * 1024);
+        console.log(db);
+
+        // 存入数据
+        db.transaction((tx) => {
+            tx.executeSql('CREATE TABLE IF NOT EXISTS LOGS (id unique, log)');
+            tx.executeSql('INSERT INTO LOGS (id, log) VALUES (3,"菜鸟教程11")');
+            tx.executeSql('INSERT INTO LOGS (id, log) VALUES (4, "www.runoob.com22")');
+        })
+
+        // 查找数据
+        db.transaction((tx) => {
+            tx.executeSql('SELECT * FROM LOGS', [], (tx, res) => {
+                let len = res.rows;
+                let msg = '';
+                for (let index = 0; index < len.length; index++) {
+                    msg += `<div>${len[index].log}  + ${len[index].id}</div>`
+                }
+                document.getElementsByClassName('show')[0].innerHTML = msg;
+            })
+        });
+
+        // 删除数据
+        document.getElementById('mgbtn').addEventListener('click', () => {
+            db.transaction((tx) => {
+                tx.executeSql('DELETE FROM LOGS WHERE id=?', [3], (tx, res) => {
+                    tx.executeSql('SELECT * FROM LOGS', [], (tx, res) => {
+                        let len = res.rows;
+                        let msg = '';
+                        for (let index = 0; index < len.length; index++) {
+                            msg += `<div>${len[index].log}  + ${len[index].id}</div>`
+                        }
+                        document.getElementsByClassName('show')[0].innerHTML = msg;
+                    })
+                })
+            })
+        })
+
+
+        // 更新数据
+        document.getElementById('mgbtn1').addEventListener('click', () => {
+            db.transaction(function (tx) {
+                tx.executeSql('UPDATE LOGS SET log=\'www.w3cschool.posdkjd\' WHERE id=?', [4], (tx, res) => {
+                    tx.executeSql('SELECT * FROM LOGS', [], (tx, res) => {
+                        let len = res.rows;
+                        let msg = '';
+                        for (let index = 0; index < len.length; index++) {
+                            msg += `<div>${len[index].log}  + ${len[index].id}</div>`
+                        }
+                        document.getElementsByClassName('show')[0].innerHTML = msg;
+                    })
+                });
+            });
+        });
+
+
+
+    </script>
+</body>
+
+</html>
