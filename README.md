@@ -1,8 +1,8 @@
 # IndexDBDemo
-# javascript+indexDB
+- javascript+indexDB
 
-# this is a simple practice demo
+- this is a simple practice demo
 
-# indexWebSQL used web SQL
+- indexWebSQL used web SQL
 
-# indexDBTest use javascript + indexDB just includes add / remove / search / update 
+- indexDBTest use javascript + indexDB just includes add / remove / search / update 
